@@ -1,34 +1,30 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { IUser } from '../../database/schemas/user.schema';
 
 @Injectable()
-export class ChatService {
-  private messages: { id: number; content: string }[] = []; // Додаємо явний тип
+export class UserService {
+  constructor(@InjectModel('User') private readonly userModel: Model<IUser>) {}
 
-  getMessages() {
-    return this.messages;
+  async createUser(data: Partial<IUser>): Promise<IUser> {
+    const newUser = new this.userModel(data);
+    return await newUser.save();
   }
 
-  getMessageById(id: number) {
-    return this.messages.find(msg => msg.id === id);
+  async findAll(): Promise<IUser[]> {
+    return await this.userModel.find().exec();
   }
 
-  createMessage(content: string) {
-    const newMessage = { id: Date.now(), content };
-    this.messages.push(newMessage);
-    return newMessage;
+  async findById(id: string): Promise<IUser | null> {
+    return await this.userModel.findById(id).exec();
   }
 
-  updateMessage(id: number, content: string) {
-    const message = this.messages.find(msg => msg.id === id);
-    if (message) {
-      message.content = content;
-      return message;
-    }
-    return null;
+  async updateUser(id: string, updateData: Partial<IUser>): Promise<IUser | null> {
+    return await this.userModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
   }
 
-  deleteMessage(id: number) {
-    this.messages = this.messages.filter(msg => msg.id !== id);
-    return { deleted: true };
+  async deleteUser(id: string): Promise<IUser | null> {
+    return await this.userModel.findByIdAndDelete(id).exec();
   }
 }

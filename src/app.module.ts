@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common';
-import { ChatController } from './messenger/chat/chat.controller';
-import { ChatService } from './messenger/user/user.service'; // Використовуємо сервіс користувачів напряму
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  controllers: [ChatController],
-  providers: [ChatService], // Реєструємо сервіс напряму
+  imports: [
+    ConfigModule.forRoot(), // Підключає .env
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('DATABASE_URL'),
+      }),
+      inject: [ConfigService],
+    }),
+  ],
 })
 export class AppModule {}

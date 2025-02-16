@@ -1,60 +1,35 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
-import { ChatService } from '../user/user.service';
-
+import { Controller, Post, Body, Get, Delete, Param, Put, Patch } from '@nestjs/common';
+import { UserService } from '../user/user.service';
 @Controller('chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly userService: UserService) {}
 
-  @Get()
-  getMessages() {
-    return this.chatService.getMessages();
+  @Post('message')
+  async createMessage(@Body() messageData: { userId: string; text: string }) {
+    const user = await this.userService.findById(messageData.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return { message: 'Message sent successfully', data: messageData };
   }
 
-  @Get(':id')
-  getMessageById(@Param('id') id: string) {
-    return this.chatService.getMessageById(Number(id));
+  @Get('test')
+  test() {
+    return { message: 'Chat works!' };
   }
 
-  @Post()
-  createMessage(@Body('content') content: string) {
-    return this.chatService.createMessage(content);
+  @Put('message/:id')
+  async updateMessage(@Param('id') id: string, @Body() updateData: { text: string }) {
+    return { message: 'Message updated successfully', data: { id, ...updateData } };
   }
 
-  @Put(':id')
-  updateMessage(@Param('id') id: string, @Body('content') content: string) {
-    return this.chatService.updateMessage(Number(id), content);
+  @Patch('message/:id')
+  async partialUpdateMessage(@Param('id') id: string, @Body() partialData: { text?: string }) {
+    return { message: 'Message partially updated successfully', data: { id, ...partialData } };
   }
 
-  @Delete(':id')
-  deleteMessage(@Param('id') id: string) {
-    return this.chatService.deleteMessage(Number(id));
+  @Delete('message/:id')
+  async deleteMessage(@Param('id') id: string) {
+    return { message: 'Message deleted successfully', data: { id } };
   }
 }
-
-
-
-
-// import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
-// import { AdPlacementService, Ad } from '../user/user.service';
-
-// @Controller('ads')
-// export class AdsController {
-//     constructor(
-//         private readonly adsPlacementService: AdPlacementService
-//     ) {}
-
-//     @Post() 
-//     createUser(@Body() user: Omit<Ad, 'id'>) {
-//         return this.adsPlacementService.createAd(user);
-//     }
-
-//     @Get('/:id') 
-//     getUser(@Param('id') userId: number) {
-//         return this.adsPlacementService.getAd(userId);
-//     }
-
-//     @Get() 
-//     getUsers() {
-//         return this.adsPlacementService.getAds();
-//     }
-// }
